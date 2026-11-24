@@ -1,9 +1,14 @@
 # a full example crud
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header, Depends
 from pydantic import BaseModel, Field
+import os
 
 app = FastAPI()
+
+def check_key(x_api_key:str = Header()):
+    if x_api_key != os.environ['API_KEY']:
+        raise HTTPException(status_code=401, detail="wrong API Key")
 
 class ItemIn(BaseModel):
     name : str
@@ -57,7 +62,7 @@ def update_item(item_id : int, changes : ItemUpdate):
 
     return items[item_id]
 # delete 
-@app.delete('/items/{item_id}', status_code=204)
+@app.delete('/items/{item_id}', status_code=204, dependencies=[Depends(check_key)])
 def delete_item(item_id : int):
     if item_id not in items: 
         raise HTTPException(status_code=404, detail="item not found")

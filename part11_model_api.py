@@ -4,6 +4,7 @@ import joblib
 import pandas as pd 
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
+import os
 
 ml = {}
 
@@ -24,7 +25,7 @@ class PredictionOut(BaseModel):
     decision : str
 
 
-THRESHHOLD = 0.50
+THRESHOLD = float(os.environ.get("THRESHOLD", "0.5"))
 
 def score(students : list[StudentIn]) -> list[dict]:
     X = pd.DataFrame([s.model_dump() for s in students])
@@ -32,7 +33,7 @@ def score(students : list[StudentIn]) -> list[dict]:
     return [
         {
             "pass_probability": round(float(p), 4),
-            "decision": "likely pass" if p >= THRESHHOLD else "likely fail"
+            "decision": "likely pass" if p >= THRESHOLD else "likely fail"
         }
         for p in probs
     ]
